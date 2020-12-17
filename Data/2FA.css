@@ -1,0 +1,16 @@
+#Exit { background-color: #f00; }
+#WebSite { 
+	color: darkcyan;
+	font-size: large }
+
+#Username { 
+	font-size: x-small }
+
+#NumericCode { 
+	color: red;
+	font-size: large }
+	
+#SaveButton { 
+	color: red;
+	background: green;
+	font-size: large }
