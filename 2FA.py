@@ -79,12 +79,13 @@ class MainPassword(Gtk.ApplicationWindow):
 		self.SavedFiles = self.TranslateEnv(self,Contener['Directories']['SavedFiles'])
 		self.JsonFile = self.TranslateEnv(self,Contener['Directories']['JsonFile'])
 		CssFile = self.TranslateEnv(self,Contener['Directories']['CssFile'])
+		self.ScrollWindowHeight = int(Contener['Values']['ScrollWindowHeight'])
+		self.ScrollWindowWidth = int(Contener['Values']['ScrollWindowWidth'])
 		self.JsonUpdated = False
 		
-		if Contener['Values']['Lang'] == 'Default':
+		Langage = Contener['Values']['Lang']
+		if Langage == 'Default':
 			Langage = os.environ['LANG'][0:2]
-		else:
-			Langage = 'en'			
 		try:
 			self.TextArray = Contener['Values'][Langage].split('|')
 		except:
@@ -120,6 +121,9 @@ class MainPassword(Gtk.ApplicationWindow):
 		Password.connect('activate', self.Password_Validation, app)
 		self.vbox.pack_start(Password, True, True, 0)
 	
+	###########################################
+	# Password validation with pgp key
+	###########################################
 	def Password_Validation(self, entry, app):
 
 		# Input password Entry
@@ -150,6 +154,9 @@ class MainPassword(Gtk.ApplicationWindow):
 			self.First=True
 			self.Display_Codes(app)
 			
+	#############################################################
+	# Display the Codes, refresh every 30 seconds or if an update
+	#############################################################
 	def Display_Codes(self, app):
 		
 		# Activate Menu Application
@@ -260,8 +267,8 @@ class MainPassword(Gtk.ApplicationWindow):
 		# grid in a scrolled area
 		ScrolledWindow = Gtk.ScrolledWindow()
 		ScrolledWindow.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.ALWAYS)
-		ScrolledWindow.set_min_content_height(500)
-		ScrolledWindow.set_min_content_width(350)
+		ScrolledWindow.set_min_content_height(self.ScrollWindowHeight)
+		ScrolledWindow.set_min_content_width(self.ScrollWindowWidth)
 		ScrolledWindow.add(self.grid)
 		self.vbox.add(ScrolledWindow)
 		self.vbox.show_all()
@@ -270,8 +277,10 @@ class MainPassword(Gtk.ApplicationWindow):
 		if self.First:
 			self.timeout_id = GLib.timeout_add(100, self.on_timeout, None, app)
 			self.First = False
-		
-	# update the progress bar
+	
+	############################################
+	# update the progress bar every 30 seconds
+	############################################
 	def on_timeout(self, user_data, app):
 		self.ProgressBar.pulse() 
 		new_value = self.ProgressBar.get_fraction() + 0.00333
@@ -280,14 +289,18 @@ class MainPassword(Gtk.ApplicationWindow):
 			self.Display_Codes(app)
 		self.ProgressBar.set_fraction(new_value)
 		return True
-		
+	
+	#-----------------------	
 	# Copy code to clipboard
+	#-----------------------
 	def CopyToClipboard(self, usre_data, Param):
 		Clipboard=Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 		Clipboard.set_text(Param, -1)
 		Clipboard.store()
 
-	# Delete JSON record
+	#----------------------------------------
+	# Delete JSON record from volatile memory
+	#----------------------------------------
 	def Delete_Entry(self, user_data, I, WebSite, Username, app):
 		MessageDialog = Gtk.MessageDialog(parent=self, 
 			modal=True, 
@@ -299,7 +312,9 @@ class MainPassword(Gtk.ApplicationWindow):
 		MessageDialog.connect('response', self.dialog_response, I, app)
 		MessageDialog.show()
 		
+	#-----------------------------------------------
 	# Translate $HOME $CURRENT in expansive notation
+	#-----------------------------------------------
 	def TranslateEnv(self, User_Data, Directory):
 		Result=Directory
 		if Directory.find('$HOME') != -1:
@@ -315,7 +330,9 @@ class MainPassword(Gtk.ApplicationWindow):
 		widget.destroy()
 		self.Display_Codes(app)
 	
+	#########################
 	# Applications Menu
+	#########################
 	def ApplicationAPropos (self, action, User_Data, app):
 		dialog = Gtk.MessageDialog(
 			transient_for=self,
@@ -338,6 +355,9 @@ class MainPassword(Gtk.ApplicationWindow):
 		dialog.run()
 		dialog.destroy()
 
+	#-----------------------
+	# Applications Menu HELP
+	#-----------------------
 	def ApplicationHelp (self, action, User_Data, app):
 		dialog = Gtk.MessageDialog(
 			transient_for=self,
@@ -360,6 +380,9 @@ class MainPassword(Gtk.ApplicationWindow):
 		dialog.run()
 		dialog.destroy()
 
+	#-----------------------------------------------------
+	# Applications Menu SAVE volatile data in crypted file
+	#-----------------------------------------------------
 	def ApplicationSave (self, action, User_Data, app):
 		if not self.JsonUpdated:
 			return()
@@ -385,40 +408,41 @@ class MainPassword(Gtk.ApplicationWindow):
 		dialog.run()
 		dialog.destroy()
 		return()
-	
-	################################
-	# Add en new record in Json File.
-	################################
+
+	#----------------------------------------------------
+	# Applications Menu ADD record in volatile database
+	#----------------------------------------------------
 	# Specific window for a new record
+	#----------------------------------------------------
 	def ApplicationAdd (self, action, User_Data, app):
 		# Create a new screen
-		Add_Window = Gtk.Window(title='Add Entry')
+		Add_Window = Gtk.Window(title=self.TextArray[7])
 		Add_Window.connect("destroy", self.Exit_Window, Add_Window)
 		Add_Window.show_all()
 		Add_Window.set_default_size(200, 200)
 		Add_Window.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 		Add_Window.add(Add_Window.vbox)
 		# Input fields
-		LabelSite = Gtk.Label(label='Site name')
+		LabelSite = Gtk.Label(label=self.TextArray[8])
 		Add_Window.vbox.pack_start(LabelSite, True, True, 0)
 		EntrySite = Gtk.Entry()
 		Add_Window.vbox.pack_start(EntrySite, True, True, 0)
 
-		LabelUser = Gtk.Label(label='Username')
+		LabelUser = Gtk.Label(label=self.TextArray[9])
 		Add_Window.vbox.pack_start(LabelUser, True, True, 0)
 		EntryUser = Gtk.Entry()
 		Add_Window.vbox.pack_start(EntryUser, True, True, 0)
 
-		LabelKey = Gtk.Label(label='Key')
+		LabelKey = Gtk.Label(label=self.TextArray[10])
 		Add_Window.vbox.pack_start(LabelKey, True, True, 0)
 		EntryKey = Gtk.Entry()
 		Add_Window.vbox.pack_start(EntryKey, True, True, 0)
 
-		GenerateButton = Gtk.Button(label='Generate')
-		GenerateButton.connect('clicked', self.GenerateRecord, EntrySite, EntryUser, EntryKey)
+		GenerateButton = Gtk.Button(label=self.TextArray[11])
+		GenerateButton.connect('clicked', self.GenerateRecord, EntrySite, EntryUser, EntryKey, app)
 		Add_Window.vbox.pack_start(GenerateButton, True, True, 0)
 
-		ExitButton = Gtk.Button(label='Exit')
+		ExitButton = Gtk.Button(label=self.TextArray[12])
 		ExitButton.connect('clicked',  self.Exit_Window, Add_Window)
 		Add_Window.vbox.pack_start(ExitButton, True, True, 0)
 
@@ -430,7 +454,7 @@ class MainPassword(Gtk.ApplicationWindow):
 		return True
 
 	# check entries & generate the record
-	def GenerateRecord(self, entry, EntrySite, EntryUser, EntryKey ):
+	def GenerateRecord(self, entry, EntrySite, EntryUser, EntryKey, app ):
 		SiteRecord = EntrySite.get_text().replace(' ','')
 		UserRecord = EntryUser.get_text().replace(' ','')
 		KeyRecord = EntryKey.get_text().replace(' ','')
@@ -444,13 +468,14 @@ class MainPassword(Gtk.ApplicationWindow):
 				flags=0,
 				message_type=Gtk.MessageType.ERROR,
 				buttons=Gtk.ButtonsType.CANCEL,
-				text='Code not valid')
-			dialog.format_secondary_text('Input a valid code')
+				text=self.TextArray[13])
+			dialog.format_secondary_text(self.TextArray[14])
 			dialog.run()
 			dialog.destroy()
 		else:
 			JsonRecord = SiteRecord + '*' + UserRecord
 			self.Json_File[JsonRecord]=KeyRecord
+			self.Display_Codes(app)
 			return()
 			
 GUI = MyApplication()
