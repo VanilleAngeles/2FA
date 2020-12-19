@@ -2,7 +2,7 @@
 Double Authentification with PGP database
 
 ## Utilité
-Un programme de double autehtification, lors d'un accès sécurisé à un site ou une application, permet de disposer d'une deuxième source pour confirmer l'avvès. Souvent utilisé sur un smartphone (Google Authenticator...)  ou une application Web indépendante (lastpass...), la solution distribuée ici utilise une base de données cryptée et un programme de décodage pour fournir le code final de déverrouillage de l'application ou du site sécurisé.
+Un programme de double autehtification, lors d'un accès sécurisé à un site ou une application, permet de disposer d'une deuxième source pour confirmer l'accès. Souvent utilisé sur un smartphone (Google Authenticator...)  ou une application Web indépendante (lastpass...), la solution distribuée ici utilise une base de données cryptée et un programme de décodage pour fournir le code final de déverrouillage de l'application ou du site sécurisé.
 
 ## Outillage
 Le programlme est écrit en Python version 3.
