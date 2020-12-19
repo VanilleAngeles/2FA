@@ -24,7 +24,7 @@ Si on ne dispose pas de clé PGP, entrer la commande
 Conseils de paramétrages : on laisse tout à défaut: RSA - 3072 - 0 (infinite) - PrénomNom - @mail et là on met son mot de passe
 ### Fichier paramèetres (2FA.ini)
 Il est documenté et ne nécessite aucune modification si les valeurs par défaut sont conservées. Le nom logique $HOME représente le $HOME de l'utilisateur courant Linux, le nom logique $CURRENT représente le répertoire où se trouve le programme principal en Python (2FA.py). On peut changer les répertoires, les langues, les traductions, la taille de l'affichage de la fenêtre des codes...
-### Créattion d'un fichier crypté vide
+### Création d'un fichier crypté vide
 En Terminal, se positionner sur le répertoire Data et entrer la commande en mettant le mot de passe de la clé PGP  
 `gpg -e -r **adresse mail de la clé PGP** -v totp.json`  
 le fichier totp.json est vide, la base cryptée le sera donc aussi. Si on veut nommer différemment la bse cryptée, ne pas oublier de modifier le fichier 2FA.ini.
