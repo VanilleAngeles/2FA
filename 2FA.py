@@ -50,6 +50,7 @@ class MyApplication(Gtk.Application):
 		menu.append('Add', 'app.Add')
 		menu.append('Delete', 'app.Delete')
 		menu.append('Save', 'app.Save')
+		menu.append('Restore', 'app.Restore')
 		menu.append('Help', 'app.Help')
 		menu.append('APropos','app.APropos')
 		menu.append("Quit", "app.quit")
@@ -172,7 +173,11 @@ class MainPassword(Gtk.ApplicationWindow):
 		if self.JsonUpdated:
 			Save_action = Gio.SimpleAction.new("Save", None)
 			Save_action.connect("activate", self.ApplicationSave, app)
-			app.add_action(Save_action)		
+			app.add_action(Save_action)
+
+		Restore_action = Gio.SimpleAction.new("Restore", None)
+		Restore_action.connect("activate", self.ApplicationRestore, app)
+		app.add_action(Restore_action)				
 
 		Help_action = Gio.SimpleAction.new("Help", None)
 		Help_action.connect("activate", self.ApplicationHelp, app)
@@ -402,7 +407,7 @@ class MainPassword(Gtk.ApplicationWindow):
 			transient_for=self,
 			flags=0,
 			message_type=Gtk.MessageType.INFO,
-			buttons=Gtk.ButtonsType.CANCEL,
+			buttons=Gtk.ButtonsType.OK,
 			text=self.TextArray[5])
 		dialog.format_secondary_text(self.TextArray[6] + '\n' + SavedFile)
 		dialog.run()
@@ -475,8 +480,57 @@ class MainPassword(Gtk.ApplicationWindow):
 		else:
 			JsonRecord = SiteRecord + '*' + UserRecord
 			self.Json_File[JsonRecord]=KeyRecord
+			self.JsonUpdated = True
 			self.Display_Codes(app)
 			return()
+
+	################################
+	# Restore a Json crypted file
+	################################
+	# Specific window for this action
+	def ApplicationRestore (self, action, User_Data, app):
+		# Input fields...
+		FileChooserDialog = Gtk.FileChooserDialog(title=self.TextArray[15],action=Gtk.FileChooserAction.OPEN)
+		FileChooserDialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
+		# ...in the backup Folder...
+		FileChooserDialog.set_current_folder(self.SavedFiles)
+		# ... only for txt files
+		filter_text = Gtk.FileFilter()
+		filter_text.set_name("Text files")
+		filter_text.add_mime_type("text/plain")
+		FileChooserDialog.add_filter(filter_text)
+		# Response analysis
+		FileChoosed = FileChooserDialog.run()
+		if FileChoosed == Gtk.ResponseType.OK:
+			ChoosedFile = FileChooserDialog.get_filename()
+		else:
+			FileChooserDialog.destroy()
+			return()
+		MessageDialog = Gtk.MessageDialog(parent=self, 
+			modal=True, 
+			message_type=Gtk.MessageType.WARNING, 
+			buttons=Gtk.ButtonsType.OK_CANCEL, 
+			text=self.TextArray[16])
+		Text_Details = self.TextArray[17] + '\n' + self.JsonFile + '\n' + self.TextArray[18] +'\n' + ChoosedFile
+		MessageDialog.format_secondary_text(Text_Details)
+		MessageDialog.connect('response', self.Restore_Response, ChoosedFile)
+		MessageDialog.show()
+		FileChooserDialog.destroy()
+		return()
+
+	def Restore_Response(self, widget, response_id, ChoosedFile):
+		if response_id == Gtk.ResponseType.OK:
+			shutil.copy(ChoosedFile, self.JsonFile)
+			dialog = Gtk.MessageDialog (
+				transient_for=self,
+				flags=0,
+				message_type=Gtk.MessageType.INFO,
+				buttons=Gtk.ButtonsType.OK,
+				text=self.TextArray[19])
+			dialog.format_secondary_text(self.TextArray[20])
+			dialog.run()
+			dialog.destroy()
+		widget.destroy()
 			
 GUI = MyApplication()
 exit_status = GUI.run(sys.argv)
