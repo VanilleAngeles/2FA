@@ -18,16 +18,16 @@ Le répertoire *Pictures* contient les images, en particuliers les icones qui se
 
 ## intialisation
 ### Création clé PGP
-Si on n'en dispose poas, entrer la commande
-  `gpg --full-generate-key`
-Conseils de paramétrages :
-  On laisse tout à défaut: RSA - 3072 - 0 (infinite) - PrénomNom - @mail
+Si on n'en dispose poas, entrer la commande  
+`gpg --full-generate-key`  
+Conseils de paramétrages :  
+  On laisse tout à défaut: RSA - 3072 - 0 (infinite) - PrénomNom - @mail  
   Et là on met son mot de passe
 ### Fichier paramèetres (2FA.ini)
 Il est documenté et ne nécessite aucune modification si les valeurs par défaut sont conservées. Le nom logique $HOME représente le $HOME de l'utilisateur courant linux, le nom logique $CURRENT représente le répertoire où se trouve le programme principal en Python (2FA.py). On peut changer les répertoires, les langues, la taille de l'affichage de la fenêtre des codes...
 ### Créattion d'un fichier crypté vide
-En Terminal, se positionner sur le répertoire Data et entrer la commande en mettant le mot de passe de la clé PGP
-  `gpg --symmetric totp.json`
+En Terminal, se positionner sur le répertoire Data et entrer la commande en mettant le mot de passe de la clé PGP  
+`gpg --symmetric totp.json`  
 le fichier totp.json est vide, la base cryptée le sera donc aussi.
 
 ## Lancement
