@@ -18,8 +18,8 @@ Le répertoire *Pictures* contient les images, en particuliers les icones qui se
 
 ## intialisation
 ### Création clé PGP
-Si on n'en dispose poas, entrer la commande 
-  `gpg --full-generate-key`.
+Si on n'en dispose poas, entrer la commande
+  `gpg --full-generate-key`
 Conseils de paramétrages :
   On laisse tout à défaut: RSA - 3072 - 0 (infinite) - PrénomNom - @mail
   Et là on met son mot de passe
@@ -33,7 +33,7 @@ le fichier totp.json est vide, la base cryptée le sera donc aussi.
 ## Lancement
 On peut lancer le programme 2FA.py soit en mode terminal, soit en créant un lanceur sur son bureau, soit en utilisant l'intégration dans le menu (Cinnamon), soit en utilisant le lanceur Argos (Gnome)
 
-## utilisation
+## Utilisation
 Le premier lancement demande le mot de passe de la clé PGP.
 Ensuite apparaiît la fenêtre principale quie se décompose comme suit:
 - le menu Application dans la barre de titres (parfois un logo comme sous Fedora). Là et seulement là est possible d'ajouter un enregistrement
