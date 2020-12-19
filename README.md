@@ -29,6 +29,8 @@ En Terminal, se positionner sur le répertoire Data et entrer la commande en met
 `gpg -e -r **adresse mail de la clé PGP** -v totp.json`  
 le fichier totp.json est vide, la base cryptée le sera donc aussi. Si on veut nommer différemment la bse cryptée, ne pas oublier de modifier le fichier 2FA.ini.
 
+[Lien](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/markdown/ "Lien vers aide éditeur Markdown").
+
 ## Lancement
 On peut lancer le programme 2FA.py soit en mode terminal (python2 2FA.py), soit en créant un lanceur sur son bureau, soit en utilisant l'intégration dans le menu (Cinnamon), soit en utilisant le lanceur Argos (Gnome).
 
