@@ -52,3 +52,5 @@ exemple incorrect
   --> Amazon.png pour Amazon  
   --> amazon.png pour AmazonWebService  
 Si un  logo n'esite pas, le programme le rempace pas son initiale (A dans le cas précédent).
+
+[Lien](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/markdown/ "Aide éditeur Markdown").
