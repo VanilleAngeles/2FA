@@ -10,11 +10,11 @@ Le cryptage utilise celui généralement fourni sur les machines Linux à savoir
 Le GUI est ici en GTK+ (version 3)
 
 ## Construction
-La distrinution est composée d'un répertoire principal et de trois sous-répertoires.
+La distribution est composée d'un répertoire principal et de trois sous-répertoires.
 Le répertoire principal contient le programme et le fichier de configuration *.ini*.
 Le répertoire *Backup* contient les sauvegardes des fichiers cryptés avant chaque *save*
 Le répertoire *Data* contient la feuille de style et la base cryptée.
-Le répertoire *Pictures* contient les images, en particuliers les icones qui seront afficheés.
+Le répertoire *Pictures* contient les images, en particulier les icones qui seront afficheés.
 
 ## intialisation
 ### Création clé PGP
@@ -27,16 +27,16 @@ Il est documenté et ne nécessite aucune modification si les valeurs par défau
 ### Création d'un fichier crypté vide
 En Terminal, se positionner sur le répertoire Data et entrer la commande en mettant le mot de passe de la clé PGP  
 `gpg -e -r **adresse mail de la clé PGP** -v totp.json`  
-le fichier totp.json est vide, la base cryptée le sera donc aussi. Si on veut nommer différemment la bse cryptée, ne pas oublier de modifier le fichier 2FA.ini.
+le fichier totp.json est vide, la base cryptée le sera donc aussi. Si on veut nommer différemment la base cryptée, ne pas oublier de modifier le fichier 2FA.ini.
 
 ## Lancement
-On peut lancer le programme 2FA.py soit en mode terminal (python2 2FA.py), soit en créant un lanceur sur son bureau, soit en utilisant l'intégration dans le menu (Cinnamon), soit en utilisant le lanceur Argos (Gnome).
+On peut lancer le programme 2FA.py soit en mode terminal (python3 2FA.py), soit en créant un lanceur sur son bureau, soit en utilisant l'intégration dans le menu (Cinnamon), soit en utilisant le lanceur Argos (Gnome).
 
 ## Utilisation
 Le premier lancement demande le mot de passe de la clé PGP.
 Ensuite apparaiît la fenêtre principale qui se décompose comme suit:
 - le menu Application dans la barre de titres (parfois un logo comme sous Fedora). Là et seulement là il est possible d'ajouter un enregistrement (add)
-- ajout d'enregistrement. Seront demandé le site, l'utilisateur et la clé. Si les données sont valides, le nouvel item apparaitra à la fin de la fenêtre des codes
+- ajout d'enregistrement. Seront demandés le site, l'utilisateur et la clé. Si les données sont valides, le nouvel item apparaitra à la fin de la fenêtre des codes
 - la barre de progression. Il est rappelé que le principe de double authentification fournit toutes les 30 seconds un code qui est calculé à partir de la clé du site et de l'heure
 - la fenêtre des codes qui est en défilement (cf paramètres). Chaque ligne est composée du logo de l'application, de son nom et son utilisateur (inutile dans le codage mais utile si plusieurs comptes sur la même application), le code généré toutes les 30 secondes (cliquer dessus met la valeur dans le presse-papier) et la corbeille qui supprime l'enregistrement  
 **IMPORTANT** Toutes les modifications sont effectuées en mémoire. Les données seront sauvées dans le fichier crypté qu'avec la fonction *Save* du menu application ou du bouton qui apparait dans la fenêtre principale quand les données ont été modifiées (add ou delete).
