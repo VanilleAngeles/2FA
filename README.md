@@ -1,7 +1,6 @@
 # 2FA
 Double Authentification with PGP database
-
-http://pix.toile-libre.org/?img=1608539804.png
+![Interface](http://pix.toile-libre.org/upload/original/1608539804.png)
 
 ## Utilité
 Un programme de double autehtification, lors d'un accès sécurisé à un site ou une application, permet de disposer d'une deuxième source pour confirmer l'accès. Souvent utilisé sur un smartphone (Google Authenticator...)  ou une application Web indépendante (lastpass...), la solution distribuée ici utilise une base de données cryptée et un programme de décodage pour fournir le code final de déverrouillage de l'application ou du site sécurisé.
