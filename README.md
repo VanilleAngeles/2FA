@@ -1,5 +1,6 @@
 # 2FA
 Double Authentification with PGP database  
+**Pour les pressés, aller à la fin, il y a un résumé pour installation express**  
 ![Interface](http://pix.toile-libre.org/upload/original/1608540219.png)
 
 ## Utilité
@@ -68,5 +69,12 @@ exemple incorrect
   --> Amazon.png pour Amazon  
   --> amazon.png pour AmazonWebService  
 Si un  logo n'esite pas, le programme le rempace pas son initiale (A dans le cas précédent).
+
+## Installation Express
+1. charger le ZIP et l'extraire où on veut
+2. créer une clé pgp (on peut utiliser une clé existante)
+3. créer un fichier crypé vide à partir du modèle
+4. installer pip3, gnupg et mintotp (si nécessaire)
+5. lancer
 
 *Aide éditeur Markdown  *[Lien](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/markdown/).
