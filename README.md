@@ -1,6 +1,8 @@
 # 2FA
 Double Authentification with PGP database
 
+http://pix.toile-libre.org/?img=1608539804.png
+
 ## Utilité
 Un programme de double autehtification, lors d'un accès sécurisé à un site ou une application, permet de disposer d'une deuxième source pour confirmer l'accès. Souvent utilisé sur un smartphone (Google Authenticator...)  ou une application Web indépendante (lastpass...), la solution distribuée ici utilise une base de données cryptée et un programme de décodage pour fournir le code final de déverrouillage de l'application ou du site sécurisé.
 
@@ -22,7 +24,7 @@ Il existe des interfaces graphiques pour générer des clés PGP mais comme elle
 Si on ne dispose pas de clé PGP, entrer la commande  
 `gpg --full-generate-key`  
 Conseils de paramétrages : on laisse tout à défaut: RSA - 3072 - 0 (infinite) - PrénomNom - @mail et là on met son mot de passe
-### Fichier paramèetres (2FA.ini)
+### Fichier paramètres (2FA.ini)
 Il est documenté et ne nécessite aucune modification si les valeurs par défaut sont conservées. Le nom logique $HOME représente le $HOME de l'utilisateur courant Linux, le nom logique $CURRENT représente le répertoire où se trouve le programme principal en Python (2FA.py). On peut changer les répertoires, les langues, les traductions, la taille de l'affichage de la fenêtre des codes...
 ### Création d'un fichier crypté vide
 En Terminal, se positionner sur le répertoire Data et entrer la commande en mettant le mot de passe de la clé PGP  
