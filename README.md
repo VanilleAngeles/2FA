@@ -8,7 +8,6 @@
 
 Double Authentification with PGP database  
 **Pour les pressés, aller à la fin, il y a un résumé pour installation express**  
-![Interface](http://pix.toile-libre.org/upload/original/1608676968.gif)
 ![interface](https://github.com/VanilleAngeles/2FA/blob/master/2FA.gif?raw=true)
 
 ## Utilité
