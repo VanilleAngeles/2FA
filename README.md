@@ -9,6 +9,7 @@
 Double Authentification with PGP database  
 **Pour les pressés, aller à la fin, il y a un résumé pour installation express**  
 ![Interface](http://pix.toile-libre.org/upload/original/1608676968.gif)
+![interface](https://github.com/VanilleAngeles/2FA/blob/master/2FA.gif?raw=true)
 
 ## Utilité
 Un programme de double autehtification, lors d'un accès sécurisé à un site ou une application, permet de disposer d'une deuxième source pour confirmer l'accès. Souvent utilisé sur un smartphone (Google Authenticator...)  ou une application Web indépendante (lastpass...), la solution distribuée ici utilise une base de données cryptée et un programme de décodage pour fournir le code final de déverrouillage de l'application ou du site sécurisé.
