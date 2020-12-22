@@ -5,7 +5,6 @@
 |Rather than using pip for free modules, I preferred to integrate the source code by mentioning their authors:|
 |- susam for mintotp.totp code https://github.com/susam/mintotp|
 |- vasjip for python-gnupg https://github.com/vsajip/python-gnupg|
-|--------------------------------|
 
 Double Authentification with PGP database  
 **Pour les pressés, aller à la fin, il y a un résumé pour installation express**  
