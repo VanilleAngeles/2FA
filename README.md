@@ -1,4 +1,12 @@
 # 2FA
+|Acknowledgments and Sources|
+|--------------------------------|
+|Special thanks for https://github.com/CyrilleBiot in his advice, his help, his support|
+|Rather than using pip for free modules, I preferred to integrate the source code by mentioning their authors:|
+|- susam for mintotp.totp code https://github.com/susam/mintotp|
+|- vasjip for python-gnupg https://github.com/vsajip/python-gnupg|
+|--------------------------------|
+
 Double Authentification with PGP database  
 **Pour les pressés, aller à la fin, il y a un résumé pour installation express**  
 ![Interface](http://pix.toile-libre.org/upload/original/1608540219.png)
