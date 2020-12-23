@@ -64,7 +64,6 @@ Si un  logo n'esite pas, le programme le rempace pas son initiale (A dans le cas
 1. charger le ZIP et l'extraire où on veut
 2. créer une clé pgp (on peut utiliser une clé existante)
 3. créer un fichier crypé vide à partir du modèle
-4. installer pip3, gnupg et mintotp (si nécessaire)
-5. lancer
+4. lancer
 
 *Aide éditeur Markdown  *[Lien](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/markdown/).
