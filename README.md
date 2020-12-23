@@ -39,7 +39,7 @@ En Terminal, se positionner sur le répertoire Data et entrer la commande en met
 le fichier totp.json est vide, la base cryptée le sera donc aussi. Si on veut nommer différemment la base cryptée, ne pas oublier de modifier le fichier 2FA.ini.
 
 ## Bibliothèques Python à installer
-### famille Debian (Debian, Ubuntu, Mint...)
+~~### famille Debian (Debian, Ubuntu, Mint...)
 Installer pip3  
 `sudo apt-get install python3-pip`  
 Installer les bibliothèques nécessaires au programme python  
@@ -54,6 +54,7 @@ Installer pip3 (à verifier)
 `sudo dnf install python-pip`  
 Installer les bibliothèques nécessaires au programme python  
 `sudo pip3 install python-gnupg mintotp`
+~~
 
 ## Lancement
 On peut lancer le programme 2FA.py soit en mode terminal (python3 2FA.py), soit en créant un lanceur sur son bureau, soit en utilisant l'intégration dans le menu (Cinnamon), soit en utilisant le lanceur Argos (Gnome).
