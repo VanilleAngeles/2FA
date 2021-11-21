@@ -4,13 +4,23 @@
 """
 2FA.py
 Two Factors Authentifior
-Use GTK+
-Bibliographie
+Use GTK+ Python3
+
+Special thanks for https://github.com/CyrilleBiot in his advice, his help, his support
+Rather than using pip for free modules, I preferred to integrate the source code by mentioning their authors:
+- susam for mintotp.totp code https://github.com/susam/mintotp
+- vasjip for python-gnupg https://github.com/vsajip/python-gnupg
+
+Bibliography
   Gtk Reference Manual --> https://python-gtk-3-tutorial.readthedocs.io/en/latest/install.html
   os.environ --> https://www.delftstack.com/fr/howto/python/how-to-access-environment-variables-in-python/
+  
+Version
+  V1 - intial
+  V2 - use popover tecnology to add secondary menu in the header
 """
 try:
-	import gi,json, gnupg, mintotp, os, shutil, datetime, configparser, sys, math
+	import gi,json, gnupg, os, shutil, datetime, configparser, sys, math, base64, hmac, struct, sys, time
 except ModuleNotFoundError as e:
 	print('[E] Module not installed', e)
 	exit()
@@ -28,43 +38,16 @@ except ModuleNotFoundError as e:
 	print('[E] Module not installed', e)
 	exit()
 	
-##########################################
-# Initialize Window wuith Application Menu
-##########################################
-class MyApplication(Gtk.Application):
+class MyApplication(Gtk.Window):
 
 	def __init__(self):
-		Gtk.Application.__init__(self)
-
-	def do_activate(self):
-		win = MainPassword(self)
-		win.show_all()
-
-	def quit_cb(self, action, parameter):
-		self.quit()
-
-	def do_startup(self):
-		Gtk.Application.do_startup(self)
-
-		menu = Gio.Menu()
-		menu.append('Add', 'app.Add')
-		menu.append('Delete', 'app.Delete')
-		menu.append('Save', 'app.Save')
-		menu.append('Restore', 'app.Restore')
-		menu.append('Help', 'app.Help')
-		menu.append('APropos','app.APropos')
-		menu.append("Quit", "app.quit")
-		self.set_app_menu(menu)
-		quit_action = Gio.SimpleAction.new("quit", None)
-		quit_action.connect("activate", self.quit_cb)
-		self.add_action(quit_action)
-#######################################################
-# Main Password Input, Display Codes and others actions
-#######################################################
-class MainPassword(Gtk.ApplicationWindow):
-
-	def __init__(self, app):
-
+		self.Read_Parameters()
+		self.Password_Window()
+		
+##########################################
+# READ INITIAL PARAMETERS
+##########################################
+	def Read_Parameters(self):
 		# Change Directory to be on the same place than de current program
 		Dir = os.path.dirname(__file__)
 		if Dir != "":
@@ -83,7 +66,6 @@ class MainPassword(Gtk.ApplicationWindow):
 		self.ScrollWindowHeight = int(Contener['Values']['ScrollWindowHeight'])
 		self.ScrollWindowWidth = int(Contener['Values']['ScrollWindowWidth'])
 		self.JsonUpdated = False
-		
 		Langage = Contener['Values']['Lang']
 		if Langage == 'Default':
 			Langage = os.environ['LANG'][0:2]
@@ -92,20 +74,49 @@ class MainPassword(Gtk.ApplicationWindow):
 		except:
 			self.TextArray = Contener['Values']['en'].split('|')
 		
-		# Init Window
-		Gtk.Window.__init__(self, title='2FA', application=app)
-		self.set_default_size(200, 200)
-#		self.set_resizable(False)
-		self.set_border_width(10)
-
-		# acces to CSS file
+		#------ acces to CSS file
 		style_provider = Gtk.CssProvider()
 		style_provider.load_from_path(CssFile)
 		Gtk.StyleContext.add_provider_for_screen(
 		   Gdk.Screen.get_default(),
 		  style_provider,
 			Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+##########################################
+# DISPLAY PASSWORD WINDOW
+##########################################
+	def Password_Window(self):
+		#------ Window created
+		Gtk.Application.__init__(self)
+		self.quit_selection = Gtk.ModelButton(label='Exit')
+#		self.set_default_size(500, 500)
+		self.set_resizable(False)
+		self.set_border_width(10)
 		
+		#------ Header menu
+		self.hbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+		self.hbox.add(self.quit_selection)
+		self.quit_selection.connect('clicked', self.on_quit_clicked)
+		self.hbox.show_all()
+		
+		self.popover = Gtk.Popover()
+		self.popover.set_border_width(2)
+		self.popover.add(self.hbox)
+	
+		menu_button = Gtk.MenuButton(popover=self.popover)
+		menu_icon = Gtk.Image.new_from_icon_name("open-menu-symbolic", Gtk.IconSize.MENU)
+		menu_icon.show()
+		menu_button.add(menu_icon)
+		menu_button.show()
+
+		hbar = Gtk.HeaderBar()
+		hbar.props.show_close_button = True
+		hbar.props.title = '2FA'
+		hbar.add(menu_button)
+		hbar.show()
+		self.set_titlebar(hbar)
+		
+		#------ Vertical box for inquiry password
 		self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 		self.add(self.vbox)
 		
@@ -119,18 +130,27 @@ class MainPassword(Gtk.ApplicationWindow):
 
 		Password = Gtk.Entry()
 		Password.set_visibility(False)
-		Password.connect('activate', self.Password_Validation, app)
+		Password.connect('activate', self.Password_Validation)
 		self.vbox.pack_start(Password, True, True, 0)
-	
-	###########################################
-	# Password validation with pgp key
-	###########################################
-	def Password_Validation(self, entry, app):
 
-		# Input password Entry
+	def on_quit_clicked(self, widget):
+		Gtk.main_quit()
+
+	#------ Translate $HOME $CURRENT in expansive notation
+	def TranslateEnv(self, User_Data, Directory):
+		Result=Directory
+		if Directory.find('$HOME') != -1:
+			Result=Directory.replace('$HOME',os.environ['HOME'])
+		if Directory.find('$CURRENT') != -1:
+			Result=Directory.replace('$CURRENT',os_path.abspath(os_path.split(__file__)[0]))
+		return(Result)
+		
+	#------ Password validation with pgp key
+	def Password_Validation(self, entry):
+		#------ Input password Entry
 		self.Password = entry.get_text()
 
-		# Check Password with PGP key
+		#------ Check Password with PGP key
 		Active_Path = os_path.abspath(os_path.split(__file__)[0]) + '/'
 		Gpg_Directory = gnupg.GPG(gnupghome=self.PgpFiles)
 		Crypted_File=open(self.JsonFile, 'rb')
@@ -138,7 +158,7 @@ class MainPassword(Gtk.ApplicationWindow):
 		Crypted_File.close()
 		self.Json_File=str(self.Json_File)
 
-		# if right Password, the Json file is decrypted, else Error Message
+		#------ if right Password, the Json file is decrypted, else Error Message
 		if self.Json_File == '':
 			dialog = Gtk.MessageDialog (
 				transient_for=self,
@@ -153,51 +173,64 @@ class MainPassword(Gtk.ApplicationWindow):
 		else:
 			self.Json_File = eval(self.Json_File)
 			self.First=True
-			self.Display_Codes(app)
-			
-	#############################################################
-	# Display the Codes, refresh every 30 seconds or if an update
-	#############################################################
-	def Display_Codes(self, app):
-		
-		# Activate Menu Application
+			self.Display_Codes()
 
-		Add_action = Gio.SimpleAction.new("Add", None)
-		Add_action.connect("activate", self.ApplicationAdd, app)
-		app.add_action(Add_action)
-
-#		Delete_action = Gio.SimpleAction.new("Delete", None)
-#		Delete_action.connect("activate", self.ApplicationDelete, app)
-#		app.add_action(Delete_action)
-
-		if self.JsonUpdated:
-			Save_action = Gio.SimpleAction.new("Save", None)
-			Save_action.connect("activate", self.ApplicationSave, app)
-			app.add_action(Save_action)
-
-		Restore_action = Gio.SimpleAction.new("Restore", None)
-		Restore_action.connect("activate", self.ApplicationRestore, app)
-		app.add_action(Restore_action)				
-
-		Help_action = Gio.SimpleAction.new("Help", None)
-		Help_action.connect("activate", self.ApplicationHelp, app)
-		app.add_action(Help_action)				
-
-		APropos_action = Gio.SimpleAction.new("APropos", None)
-		APropos_action.connect("activate", self.ApplicationAPropos, app)
-		app.add_action(APropos_action)	
-				
-		# clear screen 
+##########################################
+# DISPLAY CODES
+##########################################
+	def Display_Codes(self):
+		#------ Clear window
+		Elements = self.hbox.get_children()
+		for Element in Elements:
+			self.hbox.remove (Element)
 		Elements = self.vbox.get_children()
 		for Element in Elements:
 			self.vbox.remove (Element)
+		#------ modify header menu
+		self.add_selection = Gtk.ModelButton(label="Add")
+		self.delete_selection = Gtk.ModelButton(label="Delete")
+		self.save_selection = Gtk.ModelButton(label="Save")
+		self.restore_selection = Gtk.ModelButton(label="Restore")
+		self.help_selection = Gtk.ModelButton(label="Help")
+		self.about_selection = Gtk.ModelButton(label="About")
+		self.quit_selection = Gtk.ModelButton(label="Exit")
+		
+		self.hbox.add(self.add_selection)
+		self.add_selection.set_sensitive(True)
+		self.add_selection.connect('clicked', self.on_add_clicked)
 
-		# Main logo
+		self.hbox.add(self.delete_selection)
+		self.delete_selection.set_sensitive(False)
+#		self.delete_selection.connect('clicked', self.on_delete_clicked)
+
+		self.hbox.add(self.save_selection)
+		self.save_selection.set_sensitive(False)
+		self.save_selection.connect('clicked', self.on_save_clicked)
+
+		self.hbox.add(self.restore_selection)
+		self.restore_selection.set_sensitive(True)
+		self.restore_selection.connect('clicked', self.on_restore_clicked)
+
+		self.hbox.add(self.help_selection)
+		self.help_selection.set_sensitive(True)
+		self.help_selection.connect('clicked', self.on_help_clicked)
+
+		self.hbox.add(self.about_selection)
+		self.about_selection.set_sensitive(True)
+		self.about_selection.connect('clicked', self.on_about_clicked)
+
+		self.hbox.add(self.quit_selection)
+		self.quit_selection.set_sensitive(True)
+		self.quit_selection.connect('clicked', self.on_quit_clicked)
+
+		self.hbox.show_all()
+
+		#------ Main logo
 		Pixbuf2 = GdkPixbuf.Pixbuf.new_from_file_at_scale(filename=self.IconFiles + '2FA.png', width=64, height=64, preserve_aspect_ratio=True)
 		self.Image1 = Gtk.Image.new_from_pixbuf(Pixbuf2)
 		self.vbox.pack_start(self.Image1, True, True, 0)
 
-		# Display Codes & Progress Bar (the progress bar must start à 0" ou 30" realtime
+		#------ Display Codes & Progress Bar (the progress bar must start à 0" ou 30" realtime
 		self.ProgressBar = Gtk.ProgressBar()
 		Second=datetime.datetime.now().second
 		if Second > 30:
@@ -206,14 +239,11 @@ class MainPassword(Gtk.ApplicationWindow):
 		self.ProgressBar.set_fraction(Fraction)
 		self.vbox.pack_start(self.ProgressBar, True, True, 0)
 		
-		# Save Button if necessary
+		#------ Activate Save button if necessary
 		if self.JsonUpdated:
-			self.Button5 = Gtk.Button(label='Save')
-			self.Button5.set_name('SaveButton')
-			self.Button5.connect('clicked', self.ApplicationSave, None, app)
-			self.vbox.pack_start(self.Button5, True, True, 0)
+			self.save_selection.set_sensitive(True)
 
-		# GRID
+		#------ GRID
 		self.grid = Gtk.Grid()
 		self.grid.set_hexpand(True)
 		self.grid.set_column_spacing(10)
@@ -235,7 +265,7 @@ class MainPassword(Gtk.ApplicationWindow):
 			WebSite = Record[0]
 			Username = Record[1]
 			Base32Key=self.Json_File.get(Keys)
-			NumericCode = mintotp.totp(Base32Key)
+			NumericCode = self.totp(Base32Key)
 			
 			WebSiteLogoName=self.IconFiles + str(WebSite).lower() + '.png'
 			if os.path.isfile(WebSiteLogoName):
@@ -258,7 +288,7 @@ class MainPassword(Gtk.ApplicationWindow):
 			self.Button4 = Gtk.Button()
 			Icone = Gtk.Image.new_from_pixbuf(PixbufDelete)
 			self.Button4.set_image(Icone)
-			self.Button4.connect('clicked', self.Delete_Entry, J, WebSite, Username, app)
+			self.Button4.connect('clicked', self.Delete_Entry, J, WebSite, Username)
 
 			self.grid.attach(self.Unknown, 0, I, 1, 2)
 			self.grid.attach(self.Label3, 1, I, 1, 1)
@@ -280,65 +310,15 @@ class MainPassword(Gtk.ApplicationWindow):
 
 		# if first time, start the timeout ProgressBarr
 		if self.First:
-			self.timeout_id = GLib.timeout_add(100, self.on_timeout, None, app)
+			self.timeout_id = GLib.timeout_add(100, self.on_timeout, None)
 			self.First = False
-	
-	############################################
-	# update the progress bar every 30 seconds
-	############################################
-	def on_timeout(self, user_data, app):
-		self.ProgressBar.pulse() 
-		new_value = self.ProgressBar.get_fraction() + 0.00333
-		if new_value > 1:
-			new_value = 0
-			self.Display_Codes(app)
-		self.ProgressBar.set_fraction(new_value)
-		return True
-	
-	#-----------------------	
-	# Copy code to clipboard
-	#-----------------------
-	def CopyToClipboard(self, usre_data, Param):
-		Clipboard=Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-		Clipboard.set_text(Param, -1)
-		Clipboard.store()
 
-	#----------------------------------------
-	# Delete JSON record from volatile memory
-	#----------------------------------------
-	def Delete_Entry(self, user_data, I, WebSite, Username, app):
-		MessageDialog = Gtk.MessageDialog(parent=self, 
-			modal=True, 
-			message_type=Gtk.MessageType.WARNING, 
-			buttons=Gtk.ButtonsType.OK_CANCEL, 
-			text=self.TextArray[3])
-		Text_Details = self.TextArray[3] + '\n' + WebSite + '\n' + self.TextArray[4] + '\n' + Username
-		MessageDialog.format_secondary_text(Text_Details)
-		MessageDialog.connect('response', self.dialog_response, I, app)
-		MessageDialog.show()
-		
-	#-----------------------------------------------
-	# Translate $HOME $CURRENT in expansive notation
-	#-----------------------------------------------
-	def TranslateEnv(self, User_Data, Directory):
-		Result=Directory
-		if Directory.find('$HOME') != -1:
-			Result=Directory.replace('$HOME',os.environ['HOME'])
-		if Directory.find('$CURRENT') != -1:
-			Result=Directory.replace('$CURRENT',os_path.abspath(os_path.split(__file__)[0]))
-		return(Result)
-		
-	def dialog_response(self, widget, response_id, I, app):
-		if response_id == Gtk.ResponseType.OK:
-			self.JsonUpdated = True
-			del self.Json_File[self.Keys_List[I]]
-		widget.destroy()
-		self.Display_Codes(app)
-	
-	#########################
-	# Applications Menu
-	#########################
-	def ApplicationAPropos (self, action, User_Data, app):
+
+##########################################
+# PROCEDURES FOR HEADER MENU
+##########################################
+	#------ Applications Menu ABOUT
+	def on_about_clicked (self, widget):
 		dialog = Gtk.MessageDialog(
 			transient_for=self,
 			flags=0,
@@ -360,10 +340,8 @@ class MainPassword(Gtk.ApplicationWindow):
 		dialog.run()
 		dialog.destroy()
 
-	#-----------------------
-	# Applications Menu HELP
-	#-----------------------
-	def ApplicationHelp (self, action, User_Data, app):
+	#------ Applications Menu HELP
+	def on_help_clicked (self, widget):
 		dialog = Gtk.MessageDialog(
 			transient_for=self,
 			flags=0,
@@ -384,11 +362,8 @@ class MainPassword(Gtk.ApplicationWindow):
 		dialog.format_secondary_text(Dialog_Details)
 		dialog.run()
 		dialog.destroy()
-
-	#-----------------------------------------------------
-	# Applications Menu SAVE volatile data in crypted file
-	#-----------------------------------------------------
-	def ApplicationSave (self, action, User_Data, app):
+	#------ Application menu  SAVE
+	def on_save_clicked (self, widget):
 		if not self.JsonUpdated:
 			return()
 		JsonVersion = str(datetime.datetime.now().time())
@@ -414,12 +389,8 @@ class MainPassword(Gtk.ApplicationWindow):
 		dialog.destroy()
 		return()
 
-	#----------------------------------------------------
-	# Applications Menu ADD record in volatile database
-	#----------------------------------------------------
-	# Specific window for a new record
-	#----------------------------------------------------
-	def ApplicationAdd (self, action, User_Data, app):
+	#------ Application menu ADD
+	def on_add_clicked (self, widget):
 		# Create a new screen
 		Add_Window = Gtk.Window(title=self.TextArray[7])
 		Add_Window.connect("destroy", self.Exit_Window, Add_Window)
@@ -444,7 +415,7 @@ class MainPassword(Gtk.ApplicationWindow):
 		Add_Window.vbox.pack_start(EntryKey, True, True, 0)
 
 		GenerateButton = Gtk.Button(label=self.TextArray[11])
-		GenerateButton.connect('clicked', self.GenerateRecord, EntrySite, EntryUser, EntryKey, app)
+		GenerateButton.connect('clicked', self.GenerateRecord, EntrySite, EntryUser, EntryKey)
 		Add_Window.vbox.pack_start(GenerateButton, True, True, 0)
 
 		ExitButton = Gtk.Button(label=self.TextArray[12])
@@ -452,19 +423,56 @@ class MainPassword(Gtk.ApplicationWindow):
 		Add_Window.vbox.pack_start(ExitButton, True, True, 0)
 
 		Add_Window.show_all()
+	
+	#------ Reset Progress bar
+	def on_timeout(self, user_data):
+		self.ProgressBar.pulse() 
+		new_value = self.ProgressBar.get_fraction() + 0.00333
+		if new_value > 1:
+			new_value = 0
+			self.Display_Codes()
+		self.ProgressBar.set_fraction(new_value)
+		return True
+	
+	#------ Copy code to clipboard
+	def CopyToClipboard(self, usre_data, Param):
+		Clipboard=Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+		Clipboard.set_text(Param, -1)
+		Clipboard.store()
 
-	# close the specific window
+	#------ Delete JSON record from volatile memory
+	def Delete_Entry(self, user_data, I, WebSite, Username):
+		MessageDialog = Gtk.MessageDialog(parent=self, 
+			modal=True, 
+			message_type=Gtk.MessageType.WARNING, 
+			buttons=Gtk.ButtonsType.OK_CANCEL, 
+			text=self.TextArray[3])
+		Text_Details = self.TextArray[3] + '\n' + WebSite + '\n' + self.TextArray[4] + '\n' + Username
+		MessageDialog.format_secondary_text(Text_Details)
+		MessageDialog.connect('response', self.dialog_response, I)
+		MessageDialog.show()
+		
+		
+	def dialog_response(self, widget, response_id, I):
+		if response_id == Gtk.ResponseType.OK:
+			self.JsonUpdated = True
+			del self.Json_File[self.Keys_List[I]]
+		widget.destroy()
+		self.Display_Codes()
+	
+
+	#------ close the specific window
 	def Exit_Window(self, User_Data, window):
 		window.hide()
 		return True
 
-	# check entries & generate the record
-	def GenerateRecord(self, entry, EntrySite, EntryUser, EntryKey, app ):
+	#------ check entries & generate the record
+	def GenerateRecord(self, entry, EntrySite, EntryUser, EntryKey ):
 		SiteRecord = EntrySite.get_text().replace(' ','')
 		UserRecord = EntryUser.get_text().replace(' ','')
 		KeyRecord = EntryKey.get_text().replace(' ','')
 		try:
-			GeneratedCode=mintotp.totp(KeyRecord)
+			GeneratedCode=self.totp(KeyRecord)
 		except:
 			GeneratedCode=''
 		if GeneratedCode == '':
@@ -481,14 +489,11 @@ class MainPassword(Gtk.ApplicationWindow):
 			JsonRecord = SiteRecord + '*' + UserRecord
 			self.Json_File[JsonRecord]=KeyRecord
 			self.JsonUpdated = True
-			self.Display_Codes(app)
+			self.Display_Codes()
 			return()
 
-	################################
-	# Restore a Json crypted file
-	################################
-	# Specific window for this action
-	def ApplicationRestore (self, action, User_Data, app):
+	#------ Application menu RESTORE
+	def on_restore_clicked (self, widget):
 		# Input fields...
 		FileChooserDialog = Gtk.FileChooserDialog(title=self.TextArray[15],action=Gtk.FileChooserAction.OPEN)
 		FileChooserDialog.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
@@ -531,7 +536,24 @@ class MainPassword(Gtk.ApplicationWindow):
 			dialog.run()
 			dialog.destroy()
 		widget.destroy()
+
+	#------ Code from https://github.com/susam/mintotp
+	def hotp(self, key, counter, digits=6, digest='sha1'):
+		key = base64.b32decode(key.upper() + '=' * ((8 - len(key)) % 8))
+		counter = struct.pack('>Q', counter)
+		mac = hmac.new(key, counter, digest).digest()
+		offset = mac[-1] & 0x0f
+		binary = struct.unpack('>L', mac[offset:offset+4])[0] & 0x7fffffff
+		return str(binary)[-digits:].rjust(digits, '0')
+
+
+	def totp(self, key, time_step=30, digits=6, digest='sha1'):
+		return self.hotp(key, int(time.time() / time_step), digits, digest)
+
 			
-GUI = MyApplication()
-exit_status = GUI.run(sys.argv)
-sys.exit(exit_status)
+#----- Init
+win = MyApplication()
+win.connect("destroy", Gtk.main_quit)
+win.set_default_size(width=250, height=100)
+win.show_all()
+Gtk.main()
