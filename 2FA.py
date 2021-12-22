@@ -90,7 +90,7 @@ class MyApplication(Gtk.Window):
 		Gtk.Application.__init__(self)
 		self.quit_selection = Gtk.ModelButton(label='Exit')
 #		self.set_default_size(500, 500)
-		self.set_resizable(False)
+		self.set_resizable(True)
 		self.set_border_width(10)
 		
 		#------ Header menu
